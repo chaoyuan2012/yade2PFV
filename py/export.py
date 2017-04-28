@@ -422,6 +422,10 @@ class VTKExporter:
 		for b in bodies:
 			pos = b.state.refPos if useRef else b.state.pos if not O.periodic else O.cell.wrap(b.state.pos)
 			outFile.write("%g %g %g\n"%(pos[0],pos[1],pos[2]))
+		# write vertices
+		outFile.write("\nVERTICES %d %d\n"%(nBodies,nBodies*2))
+		for i in range(nBodies):
+			outFile.write("1 %d \n"%(i))
 		# write radius
 		outFile.write("\nPOINT_DATA %d\nSCALARS radius double 1\nLOOKUP_TABLE default\n"%(nBodies))
 		for b in bodies:

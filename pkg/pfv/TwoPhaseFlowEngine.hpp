@@ -180,7 +180,8 @@ class TwoPhaseFlowEngine : public TwoPhaseFlowEngineT
 	void savePoreNetwork();
 	void saveVtk(const char* folder) {bool initT=solver->noCache; solver->noCache=false; solver->saveVtk(folder); solver->noCache=initT;}
 	void savePhaseVtk(const char* folder);
-		
+	void savePhaseVtkIncludeBoundingCells(const char* folder);
+	
 	boost::python::list cellporeThroatRadius(unsigned int id){ // Temporary function to allow for simulations in Python, can be easily accessed in c++
 	  boost::python::list ids;
 	  if (id>=solver->T[solver->currentTes].cellHandles.size()) {LOG_ERROR("id out of range, max value is "<<solver->T[solver->currentTes].cellHandles.size()); return ids;}
@@ -208,12 +209,28 @@ class TwoPhaseFlowEngine : public TwoPhaseFlowEngineT
 	void setPoreThroatRadius(unsigned int cell1, unsigned int cell2, double radius);
 	double getPoreThroatRadius(unsigned int cell1, unsigned int cell2);
 
+	////****benchemark test functions (temporary)****////
+	void computePoreThroatRadiusBM();
+	double computeRadiusBM(CellHandle cell, int j);
+	double computeRBM(double D, double H);
+	void initialBM();
+	void initializeWReservoirsBM();
+	void invasionBM();
+	void updatePressureBM();
+	void updateReservoirsBM();
+	void invasionSingleCellBM(CellHandle cell);
+	double getMinDrainagePcBM();
+	double getMaxDrainagePcBM();
+
+	////*****end benchemark test functions*****////
+
 	
 	CELL_SCALAR_GETTER(bool,.isWRes,cellIsWRes)
 	CELL_SCALAR_GETTER(bool,.isNWRes,cellIsNWRes)
 	CELL_SCALAR_GETTER(bool,.isTrapW,cellIsTrapW)
 	CELL_SCALAR_GETTER(bool,.isTrapNW,cellIsTrapNW)
 	CELL_SCALAR_SETTER(bool,.isNWRes,setCellIsNWRes)
+	CELL_SCALAR_SETTER(bool,.isWRes,setCellIsWRes)
 	CELL_SCALAR_GETTER(Real,.saturation,cellSaturation)
 	CELL_SCALAR_SETTER(Real,.saturation,setCellSaturation)
 	CELL_SCALAR_GETTER(bool,.isFictious,cellIsFictious) //Temporary function to allow for simulations in Python
@@ -239,6 +256,9 @@ class TwoPhaseFlowEngine : public TwoPhaseFlowEngineT
 	((bool, computeForceActivated, true,,"Activate capillary force computation. WARNING: turning off means capillary force is not computed at all, but the drainage can still work."))
 	((bool, isDrainageActivated, true,, "Activates drainage."))
 	((bool, isImbibitionActivated, false,, "Activates imbibition."))
+	((double,heightBM,1.0,, "the height of the colume in benchemark."))
+	((double,pnRes,1.0e-10,,"pressure of nonwetting reservoir."))
+	((double,pwRes,0.0,,"pressure of wetting reservoir."))
 
 	
 	,/*TwoPhaseFlowEngineT()*/,
@@ -246,7 +266,9 @@ class TwoPhaseFlowEngine : public TwoPhaseFlowEngineT
 	,
 	.def("getCellIsFictious",&TwoPhaseFlowEngine::cellIsFictious,"Check the connection between pore and boundary. If true, pore throat connects the boundary.")
 	.def("setCellIsNWRes",&TwoPhaseFlowEngine::setCellIsNWRes,"set status whether 'wetting reservoir' state")
+	.def("setCellIsWRes",&TwoPhaseFlowEngine::setCellIsWRes,"set status whether 'wetting reservoir' state")
 	.def("savePhaseVtk",&TwoPhaseFlowEngine::savePhaseVtk,(boost::python::arg("folder")="./phaseVtk"),"Save the saturation of local pores in vtk format. Sw(NW-pore)=0, Sw(W-pore)=1. Specify a folder name for output.")
+	.def("savePhaseVtkIncludeBoundingCells",&TwoPhaseFlowEngine::savePhaseVtkIncludeBoundingCells,(boost::python::arg("folder")="./PhaseVtkIncludeBoundingCells"),"Save the saturation of local pores in vtk format. The cells along the boundaries are inclued. Sw(NW-pore)=0, Sw(W-pore)=1. Specify a folder name for output.")
 	.def("getCellIsWRes",&TwoPhaseFlowEngine::cellIsWRes,"get status wrt 'wetting reservoir' state")
 	.def("getCellIsNWRes",&TwoPhaseFlowEngine::cellIsNWRes,"get status wrt 'non-wetting reservoir' state")
 	.def("getCellIsTrapW",&TwoPhaseFlowEngine::cellIsTrapW,"get status wrt 'trapped wetting phase' state")
@@ -279,6 +301,11 @@ class TwoPhaseFlowEngine : public TwoPhaseFlowEngineT
 	.def("getPoreThroatRadius",&TwoPhaseFlowEngine::getPoreThroatRadius, (boost::python::arg("cell1_ID"), boost::python::arg("cell2_ID")), "get the pore throat radius between cell1 and cell2.")
 	.def("getEffRcByPosRadius",&TwoPhaseFlowEngine::computeEffRcByPosRadius, (boost::python::arg("position1"),boost::python::arg("radius1"),boost::python::arg("position2"),boost::python::arg("radius2"),boost::python::arg("position3"),boost::python::arg("radius3")), "get effective radius by three spheres position and radius.(inscribed sphere)")
 	.def("getMSPRcByPosRadius",&TwoPhaseFlowEngine::computeMSPRcByPosRadius, (boost::python::arg("position1"),boost::python::arg("radius1"),boost::python::arg("position2"),boost::python::arg("radius2"),boost::python::arg("position3"),boost::python::arg("radius3")), "get entry radius wrt MSP method by three spheres position and radius.")
+	.def("invasionBM",&TwoPhaseFlowEngine::invasionBM,"Run the drainage invasion of benchemark.")
+	.def("initialBM",&TwoPhaseFlowEngine::initialBM,"initialization benchemark.")
+	.def("getMinDrainagePcBM",&TwoPhaseFlowEngine::getMinDrainagePcBM,"benchemark. get the minimum entry capillary pressure for the next drainage step.")
+	.def("getMaxDrainagePcBM",&TwoPhaseFlowEngine::getMaxDrainagePcBM,"benchemark. get the maximum entry capillary pressure for the next drainage step.")
+
 	
 	)
 	DECLARE_LOGGER;

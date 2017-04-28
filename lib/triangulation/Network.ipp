@@ -578,7 +578,7 @@ void Network<Tesselation>::defineFictiousCells()
                 int& id = *boundsIds[bound];
                 if (id<0) continue;
                 VectorCell tmpCells;
-                tmpCells.resize(10000);
+                tmpCells.resize(100000);
                 VCellIterator cells_it = tmpCells.begin();
                 VCellIterator cells_end = Tri.incident_cells(T[currentTes].vertexHandles[id],cells_it);
                 for (VCellIterator it = tmpCells.begin(); it != cells_end; it++)

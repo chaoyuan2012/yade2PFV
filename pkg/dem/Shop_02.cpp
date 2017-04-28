@@ -13,7 +13,7 @@
 #include<pkg/common/Sphere.hpp>
 #include<pkg/common/ElastMat.hpp>
 #include<pkg/dem/ViscoelasticPM.hpp>
-#include<pkg/dem/CapillaryPhys.hpp>
+#include<pkg/dem/CapillaryPhys1.hpp>
 
 #include<pkg/common/Bo1_Aabb.hpp>
 #include<pkg/dem/NewtonIntegrator.hpp>
@@ -554,7 +554,7 @@ Matrix3r Shop::getCapillaryStress(Real volume, bool mindlin){
 		if (!I->isReal()) continue;
 		shared_ptr<Body> b1 = Body::byId(I->getId1(),scene);
 		shared_ptr<Body> b2 = Body::byId(I->getId2(),scene);
-		Vector3r fCap = mindlin? YADE_CAST<MindlinCapillaryPhys*> (I->phys.get())->fCap : YADE_CAST<CapillaryPhys*> (I->phys.get())->fCap;
+		Vector3r fCap = mindlin? YADE_CAST<MindlinCapillaryPhys*> (I->phys.get())->fCap : YADE_CAST<CapillaryPhys1*> (I->phys.get())->fCap;
 		Vector3r branch=b1->state->pos -b2->state->pos;
 		if (isPeriodic) branch-= scene->cell->hSize*I->cellDist.cast<Real>();
 		stressTensor += fCap*branch.transpose();

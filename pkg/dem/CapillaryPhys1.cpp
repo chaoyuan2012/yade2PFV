@@ -1,6 +1,6 @@
 //keep this #ifdef as long as you don't really want to realize a final version publicly, it will save compilation time for everyone else
 //when you want it compiled, you can just uncomment the following line
-// #define CAPILLARYPHYS1
+#define CAPILLARYPHYS1
 #ifdef CAPILLARYPHYS1
 
 #include <pkg/dem/CapillaryPhys1.hpp>
