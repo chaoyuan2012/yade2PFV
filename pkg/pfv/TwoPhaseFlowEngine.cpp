@@ -1197,7 +1197,7 @@ double TwoPhaseFlowEngine::getPoreThroatRadius(unsigned int cell1, unsigned int 
     return r;
 }
 
-////****benchemark test functions (temporary)****////
+////****benchmark test functions (temporary)****////
 void TwoPhaseFlowEngine::computePoreThroatRadiusBM()
 {
     RTriangulation& tri = solver->T[solver->currentTes].Triangulation();
@@ -1242,7 +1242,7 @@ double TwoPhaseFlowEngine::computeRBM(double D, double H)
 {
   double PI = 3.14159265359;
   double r = ( 2*(H+D)- sqrt(4*(pow((H+D),2)) - 4*(4-PI)*H*D) )/(2*(4-PI));
-  if (r<0) {r = ( 2*(H+D)- sqrt(4*(pow((H+D),2)) + 4*(4-PI)*H*D) )/(2*(4-PI));cerr<<"pore throat radius (benchemark) negative!! D="<< D <<", H="<< H << ", r- = " << ( 2*(H+D)- sqrt(4*(pow((H+D),2)) - 4*(4-PI)*H*D) )/(2*(4-PI)) << ", r+ = " << r <<endl;}
+  if (r<0) {r = ( 2*(H+D)- sqrt(4*(pow((H+D),2)) + 4*(4-PI)*H*D) )/(2*(4-PI));cerr<<"pore throat radius (benchmark) negative!! D="<< D <<", H="<< H << ", r- = " << ( 2*(H+D)- sqrt(4*(pow((H+D),2)) - 4*(4-PI)*H*D) )/(2*(4-PI)) << ", r+ = " << r <<endl;}
   return r;
 }
 
@@ -1254,10 +1254,54 @@ void TwoPhaseFlowEngine::initialBM()
 		buildTriangulation(0.0,*solver);//create a triangulation and initialize pressure in the elements (connecting with W-reservoir), everything will be contained in "solver"
 		// Determine the entry-pressure
 		computePoreThroatRadiusBM(); //MS-P method
-		computePoreBodyVolume();//save capillary volume of all cells, for fast calculating saturation. Also save the porosity of each cell.
+		computePoreBodyVolumeBM();//save capillary volume of all cells, for fast calculating saturation. Also save the porosity of each cell.
 		computeSolidLine();//save cell->info().solidLine[j][y]
 		initializeWReservoirsBM();//through python script initialize pressure, reservoir flags and local pore saturation
 		solver->noCache = true;
+}
+void TwoPhaseFlowEngine::computePoreBodyVolumeBM()
+{
+    RTriangulation& tri = solver->T[solver->currentTes].Triangulation();
+    FiniteCellsIterator cellEnd = tri.finite_cells_end();
+    for (FiniteCellsIterator cell = tri.finite_cells_begin(); cell != cellEnd; cell++) {
+      		switch ( cell->info().fictious() )
+		{
+			case ( 0 ) : cell->info().poreBodyVolume = 1.0e-50; break;
+			case ( 1 ) : cell->info().poreBodyVolume = computeSinglePoreBodyVolBM( cell ); break;
+			case ( 2 ) : cell->info().poreBodyVolume = 1.0e-50; break;
+			case ( 3 ) : cell->info().poreBodyVolume = 1.0e-50; break;
+			default: break; 
+		}
+     }
+}
+double TwoPhaseFlowEngine::computeSinglePoreBodyVolBM( CellHandle cell )
+{
+    double vol = 1.0e-50;
+    for ( int y=0; y<4; y++ ) {
+        if (   cell->vertex ( y )->info().isFictious  ) {
+            const CVector& Surfk = cell->info().facetSurfaces[y];
+            CVector fluidSurfk = Surfk*cell->info().facetFluidSurfacesRatio[y];
+            Real area = sqrt(fluidSurfk.squared_length());
+            vol=area*heightBM;
+        }
+    }
+    return vol;
+}
+
+double TwoPhaseFlowEngine::getSaturationBM()
+{
+    RTriangulation& tri = solver->T[solver->currentTes].Triangulation();
+    double poresVolume = 0.0; //total pores volume
+    double wVolume = 0.0; 	//NW-phase volume
+    FiniteCellsIterator cellEnd = tri.finite_cells_end();
+
+    for ( FiniteCellsIterator cell = tri.finite_cells_begin(); cell != cellEnd; cell++ ) {
+        poresVolume = poresVolume + cell->info().poreBodyVolume;
+        if (cell->info().saturation>0.0) {
+            wVolume = wVolume + cell->info().poreBodyVolume * cell->info().saturation;
+        }
+    }
+    return wVolume/poresVolume;
 }
 
 void TwoPhaseFlowEngine::initializeWReservoirsBM()
@@ -1505,7 +1549,7 @@ double TwoPhaseFlowEngine::getMaxDrainagePcBM()
     else return nextEntry;
 }
 
-////*****end benchemark test functions*****////
+////*****end benchmark test functions*****////
 
 #endif //TwoPhaseFLOW
  

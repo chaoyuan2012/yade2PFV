@@ -209,8 +209,11 @@ class TwoPhaseFlowEngine : public TwoPhaseFlowEngineT
 	void setPoreThroatRadius(unsigned int cell1, unsigned int cell2, double radius);
 	double getPoreThroatRadius(unsigned int cell1, unsigned int cell2);
 
-	////****benchemark test functions (temporary)****////
+	////****benchmark test functions (temporary)****////
 	void computePoreThroatRadiusBM();
+	void computePoreBodyVolumeBM();
+	double computeSinglePoreBodyVolBM( CellHandle cell );
+	double getSaturationBM();
 	double computeRadiusBM(CellHandle cell, int j);
 	double computeRBM(double D, double H);
 	void initialBM();
@@ -222,7 +225,7 @@ class TwoPhaseFlowEngine : public TwoPhaseFlowEngineT
 	double getMinDrainagePcBM();
 	double getMaxDrainagePcBM();
 
-	////*****end benchemark test functions*****////
+	////*****end benchmark test functions*****////
 
 	
 	CELL_SCALAR_GETTER(bool,.isWRes,cellIsWRes)
@@ -256,7 +259,7 @@ class TwoPhaseFlowEngine : public TwoPhaseFlowEngineT
 	((bool, computeForceActivated, true,,"Activate capillary force computation. WARNING: turning off means capillary force is not computed at all, but the drainage can still work."))
 	((bool, isDrainageActivated, true,, "Activates drainage."))
 	((bool, isImbibitionActivated, false,, "Activates imbibition."))
-	((double,heightBM,1.0,, "the height of the colume in benchemark."))
+	((double,heightBM,1.0,, "the height of the colume in benchmark."))
 	((double,pnRes,1.0e-10,,"pressure of nonwetting reservoir."))
 	((double,pwRes,0.0,,"pressure of wetting reservoir."))
 
@@ -301,10 +304,11 @@ class TwoPhaseFlowEngine : public TwoPhaseFlowEngineT
 	.def("getPoreThroatRadius",&TwoPhaseFlowEngine::getPoreThroatRadius, (boost::python::arg("cell1_ID"), boost::python::arg("cell2_ID")), "get the pore throat radius between cell1 and cell2.")
 	.def("getEffRcByPosRadius",&TwoPhaseFlowEngine::computeEffRcByPosRadius, (boost::python::arg("position1"),boost::python::arg("radius1"),boost::python::arg("position2"),boost::python::arg("radius2"),boost::python::arg("position3"),boost::python::arg("radius3")), "get effective radius by three spheres position and radius.(inscribed sphere)")
 	.def("getMSPRcByPosRadius",&TwoPhaseFlowEngine::computeMSPRcByPosRadius, (boost::python::arg("position1"),boost::python::arg("radius1"),boost::python::arg("position2"),boost::python::arg("radius2"),boost::python::arg("position3"),boost::python::arg("radius3")), "get entry radius wrt MSP method by three spheres position and radius.")
-	.def("invasionBM",&TwoPhaseFlowEngine::invasionBM,"Run the drainage invasion of benchemark.")
-	.def("initialBM",&TwoPhaseFlowEngine::initialBM,"initialization benchemark.")
-	.def("getMinDrainagePcBM",&TwoPhaseFlowEngine::getMinDrainagePcBM,"benchemark. get the minimum entry capillary pressure for the next drainage step.")
-	.def("getMaxDrainagePcBM",&TwoPhaseFlowEngine::getMaxDrainagePcBM,"benchemark. get the maximum entry capillary pressure for the next drainage step.")
+	.def("invasionBM",&TwoPhaseFlowEngine::invasionBM,"Run the drainage invasion of benchmark.")
+	.def("initialBM",&TwoPhaseFlowEngine::initialBM,"initialization benchmark.")
+	.def("getMinDrainagePcBM",&TwoPhaseFlowEngine::getMinDrainagePcBM,"benchmark. get the minimum entry capillary pressure for the next drainage step.")
+	.def("getMaxDrainagePcBM",&TwoPhaseFlowEngine::getMaxDrainagePcBM,"benchmark. get the maximum entry capillary pressure for the next drainage step.")
+	.def("getSaturationBM",&TwoPhaseFlowEngine::getSaturationBM,"Get saturation benchmark")
 
 	
 	)
